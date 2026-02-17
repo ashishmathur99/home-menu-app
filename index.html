@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The 360 Kitchen | Menu Gen</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%); min-height: 100vh; }
+        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 1rem; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
+        .day-card { transition: transform 0.2s; border-left: 4px solid #059669; }
+        .day-card:hover { transform: translateY(-5px); }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-6xl mx-auto">
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">🥗 Home Menu Generator</h1>
+                <p class="text-gray-600">Pure Vegetarian | Smart Logic</p>
+            </div>
+            <button onclick="generateMenu()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-full font-bold shadow-lg transition">
+                🔄 Refresh Menu
+            </button>
+        </div>
+
+        <div id="menuGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            </div>
+    </div>
+
+    <script>
+        const database = {
+            dals: ["Dal Tadka", "Dal Makhani", "Panchratna Dal", "Yellow Moong Dal", "Chana Dal Masala", "Rajma", "Chole"],
+            sabzis: ["Aloo Gobi", "Bhindi Fry", "Jeera Aloo", "Baingan Bharta", "Cabbage Matar", "Beans Poriyal", "Matar Paneer", "Mix Veg"],
+            grains: ["Phulka", "Steamed Rice", "Jeera Rice", "Missi Roti", "Paratha"],
+            onePot: ["Vegetable Khichdi", "Veg Pulao", "Pav Bhaji", "Idli Sambhar", "Dosa & Chutney", "Vegetable Biryani"]
+        };
+
+        const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+        function generateMenu() {
+            const grid = document.getElementById('menuGrid');
+            grid.innerHTML = '';
+            let usedSabzis = new Set();
+
+            days.forEach(day => {
+                let meal = "";
+                
+                // HOUSE RULES LOGIC
+                if (day === "Wednesday") {
+                    // Rule: Light Wednesday
+                    meal = `<span class="text-emerald-600 font-semibold">One-Pot:</span> ${database.onePot[Math.floor(Math.random() * database.onePot.length)]}`;
+                } else if (day === "Sunday") {
+                    // Rule: Special Sunday
+                    meal = `<span class="text-emerald-600 font-semibold">Special:</span> ${database.dals[5]} (Rajma/Chole) & ${database.grains[1]}`;
+                } else {
+                    // Standard Logic: Dal + Unique Sabzi
+                    let dal = database.dals[Math.floor(Math.random() * 5)];
+                    let sabzi;
+                    do {
+                        sabzi = database.sabzis[Math.floor(Math.random() * database.sabzis.length)];
+                    } while (usedSabzis.has(sabzi));
+                    
+                    usedSabzis.add(sabzi);
+                    meal = `${dal} + ${sabzi} & Phulka`;
+                }
+
+                const card = `
+                    <div class="glass p-6 day-card">
+                        <h3 class="text-emerald-800 font-bold text-sm uppercase tracking-wider mb-2">${day}</h3>
+                        <p class="text-gray-700 text-lg leading-relaxed">${meal}</p>
+                    </div>
+                `;
+                grid.innerHTML += card;
+            });
+        }
+
+        // Run on load
+        generateMenu();
+    </script>
+</body>
+</html>
