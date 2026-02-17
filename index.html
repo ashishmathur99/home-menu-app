@@ -3,80 +3,160 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The 360 Kitchen | Menu Gen</title>
+    <title>The 360 Kitchen | Smart Menu</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%); min-height: 100vh; }
-        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 1rem; border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
-        .day-card { transition: transform 0.2s; border-left: 4px solid #059669; }
-        .day-card:hover { transform: translateY(-5px); }
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .glass { background: white; border: 1px solid #e2e8f0; border-radius: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .tab-active { border-bottom: 3px solid #059669; color: #059669; }
     </style>
 </head>
-<body class="p-4 md:p-8">
-    <div class="max-w-6xl mx-auto">
-        <div class="flex justify-between items-center mb-8">
-            <div>
-                <h1 class="text-3xl font-bold text-gray-800">🥗 Home Menu Generator</h1>
-                <p class="text-gray-600">Pure Vegetarian | Smart Logic</p>
+<body x-data="menuApp()">
+
+    <nav class="bg-white border-b sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto px-4 flex justify-between items-center h-16">
+            <h1 class="font-bold text-xl text-emerald-800">The 360 Kitchen</h1>
+            <div class="flex space-x-6">
+                <button @click="screen = 'menu'" :class="screen === 'menu' ? 'tab-active' : ''" class="py-5 font-medium transition">Weekly Menu</button>
+                <button @click="screen = 'rules'" :class="screen === 'rules' ? 'tab-active' : ''" class="py-5 font-medium transition">House Rules</button>
             </div>
-            <button onclick="generateMenu()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-full font-bold shadow-lg transition">
-                🔄 Refresh Menu
-            </button>
+        </div>
+    </nav>
+
+    <main class="max-w-5xl mx-auto p-4 mt-4">
+        
+        <div x-show="screen === 'menu'" x-transition>
+            <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
+                <h2 class="text-2xl font-bold text-slate-800">Weekly Meal Plan</h2>
+                <button @click="generateFullMenu()" class="bg-emerald-600 text-white px-5 py-2 rounded-lg font-semibold hover:bg-emerald-700 transition">
+                    🔄 Generate New Weekly Plan
+                </button>
+            </div>
+
+            <div class="space-y-6">
+                <template x-for="(plan, day) in weeklyPlan" :key="day">
+                    <div class="glass p-5">
+                        <h3 class="font-bold text-lg text-emerald-700 border-b pb-2 mb-4" x-text="day"></h3>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            
+                            <div class="relative group">
+                                <p class="text-xs font-bold text-slate-400 uppercase">Breakfast / नाश्ता</p>
+                                <p class="text-slate-700 font-medium mt-1" x-text="plan.breakfast"></p>
+                                <button @click="replaceItem(day, 'breakfast')" class="text-xs text-blue-500 mt-1 opacity-0 group-hover:opacity-100 transition">✎ Edit</button>
+                            </div>
+
+                            <div class="relative group border-l-0 md:border-l pl-0 md:pl-4">
+                                <p class="text-xs font-bold text-slate-400 uppercase">Lunch / दोपहर का भोजन</p>
+                                <p class="text-slate-700 font-medium mt-1" x-text="plan.lunch"></p>
+                                <button @click="replaceItem(day, 'lunch')" class="text-xs text-blue-500 mt-1 opacity-0 group-hover:opacity-100 transition">✎ Edit</button>
+                            </div>
+
+                            <div class="relative group border-l-0 md:border-l pl-0 md:pl-4">
+                                <p class="text-xs font-bold text-slate-400 uppercase">Snacks / जलपान</p>
+                                <p class="text-slate-700 font-medium mt-1" x-text="plan.snacks"></p>
+                                <button @click="replaceItem(day, 'snacks')" class="text-xs text-blue-500 mt-1 opacity-0 group-hover:opacity-100 transition">✎ Edit</button>
+                            </div>
+
+                            <div class="relative group border-l-0 md:border-l pl-0 md:pl-4">
+                                <p class="text-xs font-bold text-slate-400 uppercase">Dinner / रात्रि का भोजन</p>
+                                <p class="text-slate-700 font-medium mt-1" x-text="plan.dinner"></p>
+                                <button @click="replaceItem(day, 'dinner')" class="text-xs text-blue-500 mt-1 opacity-0 group-hover:opacity-100 transition">✎ Edit</button>
+                            </div>
+
+                        </div>
+                    </div>
+                </template>
+            </div>
         </div>
 
-        <div id="menuGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div x-show="screen === 'rules'" x-transition class="max-w-2xl mx-auto">
+            <div class="glass p-8">
+                <h2 class="text-2xl font-bold mb-6 text-slate-800">Kitchen Guidelines & House Rules</h2>
+                <ul class="space-y-4 text-slate-600">
+                    <li class="flex items-start">
+                        <span class="bg-emerald-100 text-emerald-700 p-1 rounded mr-3 mt-1 font-bold text-xs">01</span>
+                        <span><strong>Seasonal Flours:</strong> Dinner is paired with seasonal grains (Bajra in Winter, Jowar/Nachni in Summer).</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="bg-emerald-100 text-emerald-700 p-1 rounded mr-3 mt-1 font-bold text-xs">02</span>
+                        <span><strong>Probiotic Lunch:</strong> Every lunch must include a Curd or Raita variation for digestion.</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="bg-emerald-100 text-emerald-700 p-1 rounded mr-3 mt-1 font-bold text-xs">03</span>
+                        <span><strong>No Waste:</strong> Leftover gravy from dinner can be converted into a breakfast paratha stuffing next day.</span>
+                    </li>
+                    <li class="flex items-start">
+                        <span class="bg-emerald-100 text-emerald-700 p-1 rounded mr-3 mt-1 font-bold text-xs">04</span>
+                        <span><strong>Vegetarian Protein:</strong> Focus on dals, paneer, and sprouts daily.</span>
+                    </li>
+                </ul>
+                <div class="mt-8 p-4 bg-amber-50 rounded-lg border border-amber-200">
+                    <p class="text-sm text-amber-800"><strong>Note:</strong> You can edit any meal on the menu screen by hovering over the item and clicking "Edit".</p>
+                </div>
             </div>
-    </div>
+        </div>
+
+    </main>
 
     <script>
-        const database = {
-            dals: ["Dal Tadka", "Dal Makhani", "Panchratna Dal", "Yellow Moong Dal", "Chana Dal Masala", "Rajma", "Chole"],
-            sabzis: ["Aloo Gobi", "Bhindi Fry", "Jeera Aloo", "Baingan Bharta", "Cabbage Matar", "Beans Poriyal", "Matar Paneer", "Mix Veg"],
-            grains: ["Phulka", "Steamed Rice", "Jeera Rice", "Missi Roti", "Paratha"],
-            onePot: ["Vegetable Khichdi", "Veg Pulao", "Pav Bhaji", "Idli Sambhar", "Dosa & Chutney", "Vegetable Biryani"]
-        };
+        function menuApp() {
+            const data = {
+                breakfast: ["Poha (पोहा)", "Stuffed Paratha (भरवां पराठा)", "Idli Sambhar (इडली सांभर)", "Upma (उपमा)", "Besan Chilla (बेसन चीला)", "Moong Dal Sprouts (मूंग दाल स्प्राउट्स)"],
+                lunch_main: ["Aloo Gobi (आलू गोभी)", "Bhindi Masala (भिंडी मसाला)", "Lauki Kofta (लौकी कोफ्ता)", "Panchratna Dal (पंचरत्न दाल)", "Jeera Aloo (जीरा आलू)", "Mix Veg (मिक्स वेज)"],
+                curds: ["Plain Curd (दही)", "Boondi Raita (बूंदी रायता)", "Cucumber Raita (खीरा रायता)", "Mixed Veg Raita (मिक्स वेज रायता)"],
+                snacks: ["Makhana (मखाना)", "Tea & Biscuits (चाय-बिस्कुट)", "Roasted Chana (भुना चना)", "Fruit Bowl (फलों का कटोरा)"],
+                dinner_gravy: ["Paneer Butter Masala (पनीर बटर मसाला)", "Rajma Masala (राजमा मसाला)", "Chole (छोले)", "Kadhi Pakora (कढ़ी पकोड़ा)", "Matar Paneer (मटर पनीर)"],
+                winter_flours: ["Bajra Roti (बाजरा रोटी)", "Makki Roti (मक्की रोटी)"],
+                summer_flours: ["Jowar Roti (ज्वार रोटी)", "Nachni Roti (नाचनी रोटी)", "Phulka (फुल्का)"]
+            };
 
-        const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+            return {
+                screen: 'menu',
+                weeklyPlan: {},
+                isWinter: true, // You can toggle this based on month
 
-        function generateMenu() {
-            const grid = document.getElementById('menuGrid');
-            grid.innerHTML = '';
-            let usedSabzis = new Set();
+                generateFullMenu() {
+                    const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+                    let newPlan = {};
+                    days.forEach(day => {
+                        newPlan[day] = this.createDayPlan();
+                    });
+                    this.weeklyPlan = newPlan;
+                },
 
-            days.forEach(day => {
-                let meal = "";
-                
-                // HOUSE RULES LOGIC
-                if (day === "Wednesday") {
-                    // Rule: Light Wednesday
-                    meal = `<span class="text-emerald-600 font-semibold">One-Pot:</span> ${database.onePot[Math.floor(Math.random() * database.onePot.length)]}`;
-                } else if (day === "Sunday") {
-                    // Rule: Special Sunday
-                    meal = `<span class="text-emerald-600 font-semibold">Special:</span> ${database.dals[5]} (Rajma/Chole) & ${database.grains[1]}`;
-                } else {
-                    // Standard Logic: Dal + Unique Sabzi
-                    let dal = database.dals[Math.floor(Math.random() * 5)];
-                    let sabzi;
-                    do {
-                        sabzi = database.sabzis[Math.floor(Math.random() * database.sabzis.length)];
-                    } while (usedSabzis.has(sabzi));
-                    
-                    usedSabzis.add(sabzi);
-                    meal = `${dal} + ${sabzi} & Phulka`;
+                createDayPlan() {
+                    const flours = this.isWinter ? data.winter_flours : data.summer_flours;
+                    return {
+                        breakfast: this.getRandom(data.breakfast),
+                        lunch: `${this.getRandom(data.lunch_main)} + Rice/Roti & ${this.getRandom(data.curds)}`,
+                        snacks: this.getRandom(data.snacks),
+                        dinner: `${this.getRandom(data.dinner_gravy)} with ${this.getRandom(flours)}`
+                    };
+                },
+
+                getRandom(arr) {
+                    return arr[Math.floor(Math.random() * arr.length)];
+                },
+
+                replaceItem(day, mealType) {
+                    if (mealType === 'breakfast') this.weeklyPlan[day].breakfast = this.getRandom(data.breakfast);
+                    if (mealType === 'lunch') this.weeklyPlan[day].lunch = `${this.getRandom(data.lunch_main)} + Rice/Roti & ${this.getRandom(data.curds)}`;
+                    if (mealType === 'snacks') this.weeklyPlan[day].snacks = this.getRandom(data.snacks);
+                    if (mealType === 'dinner') {
+                        const flours = this.isWinter ? data.winter_flours : data.summer_flours;
+                        this.weeklyPlan[day].dinner = `${this.getRandom(data.dinner_gravy)} with ${this.getRandom(flours)}`;
+                    }
+                },
+
+                init() {
+                    const month = new Date().getMonth();
+                    this.isWinter = (month >= 10 || month <= 2); // Nov to Mar
+                    this.generateFullMenu();
                 }
-
-                const card = `
-                    <div class="glass p-6 day-card">
-                        <h3 class="text-emerald-800 font-bold text-sm uppercase tracking-wider mb-2">${day}</h3>
-                        <p class="text-gray-700 text-lg leading-relaxed">${meal}</p>
-                    </div>
-                `;
-                grid.innerHTML += card;
-            });
+            }
         }
-
-        // Run on load
-        generateMenu();
     </script>
 </body>
 </html>
